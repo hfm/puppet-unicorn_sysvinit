@@ -1,0 +1,184 @@
+#!/bin/sh
+
+# chkconfig: - 85 15
+# description: Unicorn init script
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+APP_ROOT=/var/www/app
+USER=unicorn
+ENVIRONMENT=development
+
+CONFIG=/etc/sysconfig/unicorn
+[ -f "$CONFIG" ] && . $CONFIG
+
+PID=$APP_ROOT/shared/pids/unicorn.pid
+CMD="cd $APP_ROOT/current; bundle exec unicorn -E $ENVIRONMENT -D -c $APP_ROOT/current/config/unicorn.rb"
+
+# signal utils
+sig() {
+    test -s "$PID" && kill -$1 `cat $PID`
+}
+
+wait_status() {
+    local expected=$1
+    local timeout=${2:-3}
+
+    for i in $(seq 1 1 $timeout); do
+        status >/dev/null 2>&1
+        [ "x$?" = "x${expected}" ] && return 0
+        printf '.'
+        sleep 1
+    done
+
+    return 1
+}
+
+# sub commands
+usage() {
+    echo >&2 "Usage: service unicorn <start|stop|restart|status|force-stop|reopen-logs>"
+    exit 1
+}
+
+start() {
+    echo -n "Starting Unicorn: "
+
+    sig 0 2>/dev/null && {
+        failure
+        echo
+        echo "Already running" 2>&1
+        return 0
+    }
+
+    su - "$USER" -c "$CMD" && success || failure
+    code=$?
+    echo
+    return $code
+}
+
+stop() {
+    echo -n "Shutting down Unicorn: "
+
+    sig 0 2>/dev/null || {
+        failure
+        echo
+        echo "Not running"
+        return 0
+    }
+
+    sig QUIT && wait_status 3 10 && success || failure
+    code=$?
+    echo
+    return $code
+}
+
+force_stop() {
+    echo -n "Force shutting down Unicorn: "
+
+    sig 0 2>/dev/null || {
+        failure
+        echo
+        echo "Not running" 1>&2
+        return 0
+    }
+
+    sig TERM && wait_status 3  && success || failure
+    code=$?
+    echo
+    return $code
+}
+
+kill_all() {
+    echo -n "Kill all Unicorn proccesses: "
+
+    sig 0 2>/dev/null && {
+        failure
+        echo
+        echo "PID file exists, and the process exists." 1>&2
+        echo "Please run: service unicorn stop"   1>&2
+        return 0
+    }
+
+    rm -f "$PID" "${PID}.oldbin"
+
+    pgrep -f 'unicorn.rb' >/dev/null || {
+        failure
+        echo
+        echo "No Unicorn processes exist." 1>&2
+        return 0
+    }
+
+    pkill -TERM -f 'unicorn.rb' && success || failure
+    code=$?
+    echo
+    return $code
+}
+
+reload() {
+    echo -n "Reloading Unicorn: "
+
+    sig 0 && sig USR2 && wait_status 0 && success || failure
+    code=$?
+    echo
+    return $code
+}
+
+status() {
+    [ -f "$PID" ] || {
+        echo "Not running" 1>&2
+        return 3
+    }
+
+    sig 0 2>/dev/null
+
+    if [ "x$?" = "x0" ]; then
+        echo "Running" 1>&2
+        return 0
+    else
+        echo "PID file exists, but process is not running" 1>&2
+        return 1
+    fi
+}
+
+reopen_logs() {
+    echo -n "Reopening Unicorn Logs: "
+
+    sig USR1 && success || failure
+    code=$?
+    echo
+    return $code
+}
+
+# main
+cd $APP_ROOT || exit 1
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    force-stop)
+        force_stop
+        ;;
+    kill-all)
+        kill_all
+        ;;
+    restart|reload)
+        reload && exit 0
+        echo "Couldn't reload, starting '$CMD' instead" 1>&2
+        kill_all
+        start
+        ;;
+    status)
+        status
+        ;;
+    reopen-logs)
+        reopen_logs
+        ;;
+    *)
+        usage
+        ;;
+esac
