@@ -1,4 +1,4 @@
-# puppet-unicron_sysvinit
+# puppet-unicorn_sysvinit
 
 ## Overview
 
