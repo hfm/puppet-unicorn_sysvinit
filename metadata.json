@@ -1,0 +1,32 @@
+{
+  "name": "lamanotrama-unicorn_sysvinit",
+  "version": "0.0.1",
+  "author": "lamanotrama",
+  "summary": "Uncorn sysvinit Module",
+  "license": "Apache 2.0",
+  "source": "git@github.com:lamanotrama/puppet-unicorn_sysvinit.git",
+  "project_page": "https://github.com/lamanotrama/puppet-unicorn_sysvinit",
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "RedHat",
+      "operatingsystemrelease": [
+        "5",
+        "6"
+      ]
+    },
+    {
+      "operatingsystem": "CentOS",
+      "operatingsystemrelease": [
+        "5",
+        "6"
+      ]
+    },
+    {
+      "operatingsystem": "Scientific",
+      "operatingsystemrelease": [
+        "5",
+        "6"
+      ]
+    }
+  ]
+}
