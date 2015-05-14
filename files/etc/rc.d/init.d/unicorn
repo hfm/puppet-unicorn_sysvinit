@@ -131,14 +131,14 @@ reload() {
 
 status() {
     [ -f "$PID" ] || {
-        echo "Not running" 1>&2
+        echo "Unicorn is stopped" 1>&2
         return 3
     }
 
     sig 0 2>/dev/null
 
     if [ "x$?" = "x0" ]; then
-        echo "Running" 1>&2
+      echo "Unicorn (pid $(cat $PID)) is running" 1>&2
         return 0
     else
         echo "PID file exists, but process is not running" 1>&2
