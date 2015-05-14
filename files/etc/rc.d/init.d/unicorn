@@ -14,7 +14,12 @@ CONFIG=/etc/sysconfig/unicorn
 [ -f "$CONFIG" ] && . $CONFIG
 
 PID=$APP_ROOT/shared/pids/unicorn.pid
-CMD="cd $APP_ROOT/current; bundle exec unicorn -E $ENVIRONMENT -D -c $APP_ROOT/current/config/unicorn.rb"
+
+if [ -n "$RUBY_PATH" ]; then
+    CMD="cd $APP_ROOT/current; PATH=${RUBY_PATH}:\$PATH bundle exec unicorn -E $ENVIRONMENT -D -c $APP_ROOT/current/config/unicorn.rb"
+else
+    CMD="cd $APP_ROOT/current; bundle exec unicorn -E $ENVIRONMENT -D -c $APP_ROOT/current/config/unicorn.rb"
+fi
 
 # signal utils
 sig() {
