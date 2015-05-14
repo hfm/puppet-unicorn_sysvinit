@@ -12,6 +12,7 @@ class { 'unicrorn_sysvinit':
     'APP_ROOT'    => '/var/www/myapp',
     'USER'        => 'app',
     'ENVIRONMENT' => 'production',
+    'RUBY_PATH'   => '/opt/ruby2.2.2/bin',
   },
 }
 
