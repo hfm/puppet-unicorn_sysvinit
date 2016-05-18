@@ -4,7 +4,7 @@ class unicorn_sysvinit::install {
     source => 'puppet:///modules/unicorn_sysvinit/etc/rc.d/init.d/unicorn',
     owner  => 'root',
     group  => 'root',
-    mode   => 755,
+    mode   => '0755',
   }
 
 }
